@@ -184,6 +184,14 @@
     5.  [ ] クラスタIP
     6.  [ ] ロードバランサー
 
+    - GKE の Service タイプには
+      - ClusterIP
+      - NodePort
+      - LoadBalancer
+      - ExternalName
+      - Headress
+    がある
+
 19. HAモードのPostgreSQLクラスタは、データを複数のゾーンに同期レプリケーションする
     1.  [x] yes
     2.  [ ] no
