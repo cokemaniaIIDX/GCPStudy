@@ -1,6 +1,7 @@
 # GCPドキュメントのまとめ
 
 ## Computing
+
 ### Compute Engine
 - ストレージオプション
   - ゾーン永続HDD,SSD
@@ -57,9 +58,22 @@
   - Headless
     - Podのグループ化を行うが、固定IPは必要ないときに使う
 
+
 ## Storage
 
 ### Cloud Storage
+- 可用性
+  - Standard
+    - Multi(Dual)-Regionで99.99%を超える
+    - Regionalで99.99%
+  - そのほか(Nearline,Coldline,Archive)
+    - Multi(Dual)-Regionで99.95%
+    - Regionalで99.90%
+
+- すべてのクラス
+  - 無制限ストレージ
+  - 耐久性 99.999999999%
+  - 地理的な冗長性
 
 ### Datastore
 - コンポーネント
@@ -74,7 +88,58 @@
 
 
 ## 負荷分散
+- マネージドインスタンスグループ
+  - 自動修復、負荷分散、自動スケーリング、自動更新、ステートフルなどの機能をサポート
+  - 単一ゾーンまたはリージョンで作成できる
+
 - 非マネージドインスタンスグループ
   - 異種インスタンスをまとめる
   - スケーリングとか自動修復はできない
   - 同一ゾーン内のみしか作れない
+
+
+## Serverless Computing
+
+### Cloud Functions
+- Cloud Functionsの料金は、関数の実行期間、関数の呼び出し回数、関数に対してプロビジョニングされたリソースの数に応じて決まる
+  - 呼び出し回数
+    - 最初の200万回は無料
+    - 以降、100万単位で$0.4
+  - 実行期間
+    - 関数がリクエストを受け取ってから完了するまでの期間
+    - 100ミリ秒単位で測定される
+    - メモリとCPUの使用量でも変動する
+      - メモリ:512MB,CPU:800MHz → $0.000000925　等
+
+
+## セキュリティ アイデンティティ
+
+### Cloud IAM 
+- メンバー
+  - Googleアカウント
+  - サービスアカウント
+  - Googleグループ
+  - G Suite または Cloud Identity ドメイン
+
+
+## ハイブリッド
+
+### Interconnect
+
+### Peering
+- Googleのエッジネットワークと接続する
+- エッジロケーションは現在142箇所　東京7箇所、大阪2箇所
+- ダイレクトピアリングはGoogleCloudの外部にある
+  - →よって、G Suiteへアクセスする必要がなければInterconnectを使う
+
+## その他
+- GoogleCloudのプロジェクトやリソースの管理方法
+  - Console
+  - Comand Line Interface(gcloud)
+    - Cloud SDK
+    - Cloud Shell
+  - クライアントライブラリ(API)
+    - Node.js や Python から呼び出す
+  - Cloud Console モバイルアプリ
+  - Cloud tools for PowerShell
+    - Windowsサーバ用
