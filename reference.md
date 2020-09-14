@@ -268,6 +268,20 @@
 
 ### Interconnect
 
+#### 課金対象
+- Dedicated Interconnect
+  - 1時間当たりのVLANアタッチメント
+  - 1か月当たりの回路（？）
+  ```
+  You're charged on a monthly basis for interconnects and on an hourly basis for interconnect attachments (VLANs).
+  ```
+
+- Partner Interconnect
+  - 1か月あたりのVLANアタッチメント
+  ```
+  Google charges you on a monthly basis for interconnect attachments (VLANs).Your service provider might also charge you for services such as using their network, which isn't included in your GCP bills.
+  ```
+
 ### Peering
 - Googleのエッジネットワークと接続する
 - エッジロケーションは現在142箇所　東京7箇所、大阪2箇所
