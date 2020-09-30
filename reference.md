@@ -123,6 +123,15 @@
 ## Storage,Database
 
 ### Cloud Storage
+- オブジェクト
+  - バケット内に生成できるオブジェクト数に上限はない
+  - オブジェクトデータとオブジェクトメタデータの二つのコンポーネント
+  - オブジェクトメタデータはオブジェクトの性質を記述した名前と値のペア
+  - バージョニングを有効にすると上書き、削除が行われても古いバージョンがバケットに残る
+  - オブジェクトは不変である
+    - あとからオブジェクトに追加や切り捨てなどで部分的な変更を加えることはできない
+    - ただし上書きは可能
+
 - 可用性
   - Standard
     - Multi(Dual)-Regionで99.99%を超える
@@ -160,6 +169,7 @@
   - 1つ以上のノードを含む
   - 1つの場合レプリケーションしない
   - 2つめを追加すると自動でレプリケーションを開始する
+  - アプリケーションが接続するクラスタを選択できる
 - ノード
   - 最小単位のコンピューティングリソース
   - Bigtableはバックグラウンドでテーブル内のすべてのデータを別々のタブレットに分割する
@@ -176,6 +186,13 @@
     - ほぼリアルタイムのバックアップ
     - グローバルプレゼンスの確保
   - 結果整合性
+
+- ダウンタイム無しで変更可能
+  - 各クラスタのノードの追加
+  - インスタンス内のクラスタの数
+  - アプリプロファイル
+  - インスタンスのラベル
+  - インスタンスの表示名
 
 ### Datastore(Firestore)
 - ロケーションの種類
@@ -224,8 +241,16 @@
 ## ビッグデータ
 
 ### BigQuery
+DW(DataWarehouse)のフルマネージドサービス
 
 ### Dataproc
+Apache **Hadoop,Spark** のフルマネージドサービス
+  Hadoop:
+    大規模データを**分散処理**するためのフレームワーク
+  Spark:
+    Hadoopはバッチ処理のみなのに対して、**リアルタイムストリーミング処理**ができるようになったのがSpark
+MapReduce:分散処理技術の一つ
+HDFS:HadoopDistributedFileSystem
 
 
 ## 負荷分散
@@ -365,6 +390,23 @@
 - 帯域幅
   - 上限3Gbps
 
+### ハイブリッドの選択
+GCPリソースにアクセスする必要が無い場合(GSuitを使う場合):
+  Peering
+GCPリソースにアクセスする必要がある
+  低スループットでOK:
+    Cloud VPN
+  高スループットが必要
+    10Gbps以上:
+      Dedicated Interconnect
+    10Gbps以下でOK:
+      Partner Interconnect
+VPCどうしをつなぐ場合
+  同一組織内
+    共有VPC
+  組織関係なし
+    VPCピアリング
+
 
 ## Cloud Billing
 - 請求先アカウント
@@ -388,7 +430,9 @@
 
 ### Cloud HSM
 - HSMとは
-  - FIPS 140-2 Level3認定HSMクラスタで暗号かぎのホスティングや
+  - FIPS 140-2 Level3認定HSMクラスタで暗号かぎのホスティングや暗号オペレーションを実行できるようにするHardwareSecurityModuleサービス
+  - FIPS:FederalInformationProcessingStandard(米国連邦情報処理規格)
+
 
 ## その他
 - GoogleCloudのプロジェクトやリソースの管理方法
@@ -401,3 +445,7 @@
   - Cloud Console モバイルアプリ
   - Cloud tools for PowerShell
     - Windowsサーバ用
+
+### Cloud Code
+- Kubernetesの開発を高速化できるツール　IDE?
+- IntelliJとかVSCodeみたいなもん
