@@ -448,5 +448,5 @@ VPCどうしをつなぐ場合
     - Windowsサーバ用
 
 ### Cloud Code
-- Kubernetesの開発を高速化できるツール　IDE?
+- Kubernetesの開発を高速化できるツール IDE?
 - IntelliJとかVSCodeみたいなもん
