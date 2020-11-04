@@ -1,22 +1,28 @@
-54. 会社のテストスイートは、Linux 仮想マシンで毎日テストを実行するカスタム C ++ アプリケーションです。
+54. 会社のテストスイートは、Linux 仮想マシンで毎日テストを実行するカスタム C++ アプリケーションです。
 完全なテストスイートの完了には数時間かかり、テスト用に予約された限られた数のオンプレミスサーバーで実行されます。
 会社は、テスト インフラストラクチャをパブリッククラウドに移行し、システムへの変更を完全にテストするのにかかる時間を削減し、テストの変更をできる限り少なくしたいと考えています。
 どのクラウドインフラストラクチャになりますか？
 
 - [ ] Google Compute Engine の非マネージ ドインスタンス グループとネットワーク負荷分散。
-- [ ] 自動スケーリングを使用したGoogle Compute Engine マネージド インスタンス グループ。
+    →非マネージドじゃなくてよくね？
+- [x] 自動スケーリングを使用したGoogle Compute Engine マネージド インスタンス グループ。
 - [ ] Apache Cloud Hadoop ジョブを実行して各テストを処理するGoogle Cloud Dataproc。
+    →HadoopはMapReduceには適しているけど、C++は使えない
 - [ ] ロギング用のGoogle StackDriver を備えたGoogle App Engine。
+    →AppEngineは特殊で、テストの変更が大きくなるのでNG
 
 
-55. 最近の監査で、Google Cloud Platform のプロジェクトで新しいネットワークが作成されたことが明らかになりました。
+1.  最近の監査で、Google Cloud Platform のプロジェクトで新しいネットワークが作成されたことが明らかになりました。
 このネットワークでは、Google Compute Engine（GCE）インスタンスのSSHポートが公開されており、ネットワークの発信元を検出する必要があります。
 何をするべきでしょうか？
 
 - [ ] Stackdriver Alerting Console でCreate VM エントリを検索します
+    →VMは作られてない
 - [ ] [ホーム] セクションの[アクティビティ] ページに移動します。カテゴリをデータアクセスに設定し、VM エントリの作成を検索します
-- [ ] コンソールのログセクションで、ログセクションとしてGCE ネットワークを指定します。挿入の作成エントリを検索します。
+    →VMは作られてない
+- [x] コンソールのログセクションで、ログセクションとしてGCE ネットワークを指定します。挿入の作成エントリを検索します。
 - [ ] プロジェクト SSH キーを使用してGCE インスタンスに接続します。システムログで以前のログインを特定し、プロジェクト 所有者リストと一致させます。
+    →ネットワークはVM内からは作成できないのでNG(gcloud コマンドで作成したらわかるかもしれんが、、)
 
 
 56. 会社は、単一のMySQLインスタンスで複数のデータベースを実行しています。
@@ -25,12 +31,16 @@
 ストレージをどのように構成する必要がありますか？
 
 - [ ] gcloudツールを使用して永続的なディスクスナップショットを使用して定期的なバックアップを取るようにcronジョブを構成します。
-- [ ] バックアップ場所としてローカル SSD ボリュームをマウントします。 バックアップが完了したら、gsutil を使用してバックアップをGoogle Cloud Storage に移動します。
-- [ ] gcsfise を使用して、Google Cloud Storage バケットをインスタンスに直接ボリュームとしてマウントし、mysqldump を使用してマウントされた場所にバックアップを書き込みます。
+    →バックアップに時間がかかる
+- [x] バックアップ場所としてローカル SSD ボリュームをマウントします。 バックアップが完了したら、gsutil を使用してバックアップをGoogle Cloud Storage に移動します。
+    →基本的な使い方
+- [ ] gcsfuse を使用して、Google Cloud Storage バケットをインスタンスに直接ボリュームとしてマウントし、mysqldump を使用してマウントされた場所にバックアップを書き込みます。
+    →FUSEはクッソパフォーマンス低いからあまり推奨されない
 - [ ] 追加の永続ディスクボリュームをRAID 10 アレイの各仮想マシン（VM）インスタンスにマウントし、LVM を使用してスナップショットを作成し、Google Cloud Storage に送信します。
+    →RAID10がバックアップに時間がかかる
 
 
-57. 実行中のGoogle Kubernetes Engine クラスタを有効にして、アプリケーションの需要に応じてスケーリングできるようにします。
+1.  実行中のGoogle Kubernetes Engine クラスタを有効にして、アプリケーションの需要に応じてスケーリングできるようにします。
 あなたは何をするべきか？
 
 - [ ] 次のコマンドを使用して、Kubernetes Engine クラスタにノードを追加します。
@@ -39,7 +49,7 @@ CLUSTER_Name – -size 10
 - [ ] 次のコマンドを使用して、クラスタ内のインスタンスにタグを追加します。
 gcloud compute instances add-tags
 INSTANCE – -tags enableautoscaling max-nodes-10
-- [ ] 次のコマンドを使用して、既存のGoogle Kubernetes Engine クラスタを更新します。
+- [x] 次のコマンドを使用して、既存のGoogle Kubernetes Engine クラスタを更新します。
 gcloud alpha container clusters
 update mycluster – -enableautoscaling – -min-nodes=1 – -max-nodes=10
 - [ ] 次のコマンドを使用して、新しいGoogle Kubernetes Engine クラスタを作成します。
@@ -51,11 +61,11 @@ and redeploy your application
 58. 運用マネージャーは、J2EE アプリケーションをパブリック クラウドに移行する際に考慮する必要がある推奨プラクティスのリストを尋ねます。
 どの3つのプラクティスをお勧めしますか？（回答は3つ）
 
-- [ ] アプリケーションコードを移植して、Google App Engine で実行します。
+- [x] アプリケーションコードを移植して、Google App Engine で実行します。
 - [ ] Google Cloud Dataflow をアプリケーションに統合して、リアルタイムのメトリックをキャプチャします。
 - [ ] Stackdriver Debugger などの監視ツールを使用してアプリケーションを計測します。
-- [ ] 自動化フレームワークを選択して、クラウド インフラストラクチャを確実にプロビジョニングします。
-- [ ] ステージング環境で自動テストを使用して継続的統合ツールを展開します。
+- [x] 自動化フレームワークを選択して、クラウド インフラストラクチャを確実にプロビジョニングします。
+- [x] ステージング環境で自動テストを使用して継続的統合ツールを展開します。
 - [ ] MySQL からGoogle Cloud Datastore やGoogle Cloud Bigtable などの管理されたNoSQL データベースに移行します。
 
 
@@ -66,7 +76,7 @@ and redeploy your application
 どのデータベースタイプを使用するべきでしょうか？
 
 - [ ] Flat file
-- [ ] NoSQL
+- [x] NoSQL
 - [ ] Relational
 - [ ] Blobstore
 
@@ -77,7 +87,7 @@ and redeploy your application
 
 - [ ] ISPと協力して問題を診断します。
 - [ ] 問題を診断するためにネットワークキャプチャとフローデータを要求するサポートチケットを開き、アプリケーションをロールバックします。
-- [ ] 最初に以前の既知の正常なリリースにロールバックし、次にStackdriver Trace とStackdriver Logging を使用して、開発/テスト/ステージング環境で問題を診断します。
+- [x] 最初に以前の既知の正常なリリースにロールバックし、次にStackdriver Trace とStackdriver Logging を使用して、開発/テスト/ステージング環境で問題を診断します。
 - [ ] 既知の正常なリリースにロールバックし、アクセスが少ない時間にリリースを再度プッシュして調査し、Stackdriver Trace とStackdriver Logging を使用して問題を診断します。
 
 
@@ -85,7 +95,7 @@ and redeploy your application
 データベースのストレージ容量が不足しています。
 ダウンタイムを最小限に抑え、問題を解決するにはどうすれば良いでしょうか？
 
-- [ ] Google Cloud Platform（GCP） Console で、永続ディスクのサイズを増やし、Linux でresize2fs コマンドを使用します。
+- [x] Google Cloud Platform（GCP） Console で、永続ディスクのサイズを増やし、Linux でresize2fs コマンドを使用します。
 - [ ] 仮想マシンをシャットダウンし、GCP Console を使用して永続ディスクサイズを増やしてから、仮想マシンを再起動します。
 - [ ] GCP Consoleで、永続ディスクのサイズを増やし、Linux のfdisk コマンドで新しいスペースが使用できる状態になっていることを確認します。
 - [ ] GCP Consoleで、仮想マシンに接続された新しい永続ディスクを作成し、フォーマットしてマウントし、データベースサービスを構成して、ファイルを新しいディスクに移動します。
@@ -97,7 +107,7 @@ and redeploy your application
 どのGoogle Cloud Platafromプロダクトを使用するべきでしょうか？
 
 - [ ] Google Cloud Dataflow
-- [ ] Google Cloud Dataproc
+- [x] Google Cloud Dataproc
 - [ ] Google Compute Engine
 - [ ] Google Kubernetes Engine
 
@@ -108,7 +118,7 @@ and redeploy your application
 
 - [ ] Google BigQuery
 - [ ] Google Cloud SQL
-- [ ] Google Cloud Bigtable
+- [x] Google Cloud Bigtable
 - [ ] Google Cloud Storage
 
 
@@ -119,7 +129,7 @@ API への各リクエストは多くのサービスを通過できることが�
 - [ ] 要求をより速く失敗できるように、アプリケーションにタイムアウトを設定します。
 - [ ] 各リクエストのカスタムメトリックスをStackdriver Monitoring に送信します。
 - [ ] Stackdriver Monitoring を使用して、API レイテンシーが高いときに表示される洞察を探します。
-- [ ] Stackdriver Trace を使用してアプリケーションをインスツルメントし、各マイクロサービスでリクエストのレイテンシーを分解します。
+- [x] Stackdriver Trace を使用してアプリケーションをインスツルメントし、各マイクロサービスでリクエストのレイテンシーを分解します。
 
 
 65. 監査人は12か月ごとにチームを訪問し、過去12か月のすべてのGoogle Cloud IDおよびアクセス管理（Google Cloud IAM）ポリシーの変更を確認するよう求められています。
