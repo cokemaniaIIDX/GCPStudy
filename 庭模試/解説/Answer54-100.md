@@ -141,19 +141,21 @@ API への各リクエストは多くのサービスを通過できることが�
 - [ ] カスタム Google Stackdriver アラートを作成し、監査員に送信します。
 - [ ] Google BigQuery へのログのエクスポートを有効にし、ACLとビューを使用して監査人と共有するデータの範囲を限定します。
 - [ ] Google Cloud Functions を使用してログエントリをGoogle Cloud SQL に転送し、ACLとビューを使用して監査人のビューを制限します。
-- [ ] Google Cloud Storage（GCS）ログのエクスポートを有効にして、ログをGCS バケットに監査し、バケットへのアクセスを委任します。
+- [x] Google Cloud Storage（GCS）ログのエクスポートを有効にして、ログをGCS バケットに監査し、バケットへのアクセスを委任します。
+    →ログの保存といえばGCS
+      BigQueryもあり得るけど、1年毎みたいなので、保存コストが安いGCSのほうが適している
 
 
 66. リードエンジニアが、従来のデータセンターに仮想マシンを展開するカスタムツールを作成しました。
-カスタムツールを新しいクラウド環境に移行したいと考え、Google Cloud Deployment Manager の採用を検討しています。。
+カスタムツールを新しいクラウド環境に移行したいと考え、Google Cloud Deployment Manager の採用を検討しています。
 GoogleCloud Deployment Manager に移行するビジネスリスクは何でしょうか？（回答は2つ）
 
 - [ ] Google Cloud Deployment Manager はPython を使用します。
-- [ ] Google Cloud Deployment Manager API は将来廃止される可能性があります。
+- [x] Google Cloud Deployment Manager API は将来廃止される可能性があります。
 - [ ] Google Cloud Deployment Manager は会社のエンジニアには馴染みがありません。
 - [ ] Google Cloud Deployment Manager を実行するには、Google API サービス アカウントが必要です。
 - [ ] Google Cloud Deployment Manager を使用して、クラウドリソースを完全に削除できます。
-- [ ] Google Cloud Deployment Manager は、Google Cloud リソースの自動化のみをサポートしています。
+- [x] Google Cloud Deployment Manager は、Google Cloud リソースの自動化のみをサポートしています。
 
 
 67. 組織には、Google Cloud Platform（GCP） の同じネットワークに展開された3層のWebアプリケーションがあります。
@@ -163,7 +165,7 @@ GoogleCloud Deployment Manager に移行するビジネスリスクは何でし�
 - [ ] 各層を異なるサブネットワークに追加します。
 - [ ] 個々のVMにソフトウェアベースのファイアウォールをセットアップします。
 - [ ] タグを各層に追加し、ルートを設定して、目的のトラフィック フローを許可します。
-- [ ] 各層にタグを追加し、ファイアウォール ルールを設定して、目的のトラフィックフローを許可します。
+- [x] 各層にタグを追加し、ファイアウォール ルールを設定して、目的のトラフィックフローを許可します。
 
 
 68. 開発チームは、Google Compute Engine（GCE）仮想マシン（VM）のバッチサーバーに新しいLinux カーネルモジュールをインストールして、夜間のバッチプロセスを高速化しました。
@@ -171,11 +173,11 @@ GoogleCloud Deployment Manager に移行するビジネスリスクは何でし�
 開発チームに渡すための失敗に関する詳細を収集する必要があります。
 どのアクションを実行するべきでしょうか？（回答は3つ）
 
-- [ ] Stackdriver Logging を使用して、モジュールログエントリを検索します。
+- [x] Stackdriver Logging を使用して、モジュールログエントリを検索します。
 - [ ] API またはGoogle Cloud Platform（GCP）Console を使用して、GCE のデバッグ アクティビティログを読み取ります。
-- [ ] gcloud またはGCP Console を使用してシリアルコンソールに接続し、ログを確認します。
+- [x] gcloud またはGCP Console を使用してシリアルコンソールに接続し、ログを確認します。
 - [ ] アクティビティログで、障害が発生したサーバのライブ マイグレーション イベントが発生したかどうかを特定します。
-- [ ] Google Stackdriver のタイムラインを障害時間に合わせて調整し、バッチサーバ メトリックを観察します。
+- [x] Google Stackdriver のタイムラインを障害時間に合わせて調整し、バッチサーバ メトリックを観察します。
 - [ ] デバッグ VMをイメージにエクスポートし、カーネルログ メッセージがネイティブ画面に表示されるローカルサーバでイメージを実行します。
 
 
@@ -183,11 +185,16 @@ GoogleCloud Deployment Manager に移行するビジネスリスクは何でし�
 約100 TBのログデータをパブリック クラウドにアーカイブし、そこで利用可能な分析機能をテストすると同時に、そのデータを長期の災害復旧バックアップとして保持したいと考えています。
 どの手段を選択するべきでしょうか？（回答は2つ）
 
-- [ ] ログをGoogle BigQuery にロードします。
+- [x] ログをGoogle BigQuery にロードします。
+    →100TBのデータを分析するのに最適
 - [ ] ログをGoogle Cloud SQL にロードします。
+    →10GBまでなのでNG
 - [ ] ログをGoogle Stackdriver にインポートします。
+    →できない
 - [ ] ログをGoogle Cloud Bigtable にインポートします。
-- [ ] ログファイルをGoogle Cloud Storage にアップロードします。
+    →高スループットが必要なIoTデータとかの処理に最適
+- [x] ログファイルをGoogle Cloud Storage にアップロードします。
+    →長期の災害復旧バックアップとして最適
 
 
 70. カスタム Java アプリケーションをGoogle App Engine にデプロイします。
@@ -207,7 +214,7 @@ java.lang.SecurityException: SHA1 diest digest error for com/Altostart/CloakeSer
      at java.lang.reflect.Method.invoke (Method.java:616)
      at java.lang.ClassLoader.loadClass (ClassLoader.java:266)
 - [ ] 不足しているJAR ファイルをアップロードし、アプリケーションを再デプロイします。
-- [ ] すべてのJARファイルにデジタル署名し、アプリケーションを再デプロイします。
+- [x] すべてのJARファイルにデジタル署名し、アプリケーションを再デプロイします。
 - [ ] SHA1 の代わりにMD5 ハッシュを使用してCLoakedServlet クラスを再コンパイルします。
 
 
@@ -216,7 +223,7 @@ java.lang.SecurityException: SHA1 diest digest error for com/Altostart/CloakeSer
 
 - [ ] SHA256 を使用してすべてのデータをハッシュします。
 - [ ] 楕円曲線暗号を使用してすべてのデータを暗号化します。
-- [ ] Google Cloud Data Loss Prevention API を使用してデータの識別を解除します。
+- [x] Google Cloud Data Loss Prevention API を使用してデータの識別を解除します。
 - [ ] 正規表現を使用して、電話番号、メールアドレス、クレジットカード番号を見つけて編集します。
 
 
@@ -228,12 +235,28 @@ java.lang.SecurityException: SHA1 diest digest error for com/Altostart/CloakeSer
 - [ ] /google/scripts
 - [ ] /usr/local/bin
 
+答えなし
+/home/ユーザ名 はセッション間で保持される。
+```
+sbtkzks@cloudshell:~ (imade-gaming-265014)$ df -hT
+Filesystem                        Type     Size  Used Avail Use% Mounted on
+overlay                           overlay   60G   44G   17G  73% /
+tmpfs                             tmpfs     64M     0   64M   0% /dev
+tmpfs                             tmpfs    7.9G     0  7.9G   0% /sys/fs/cgroup
+/dev/sda1                         ext4      60G   44G   17G  73% /root
+/dev/disk/by-id/google-home-part1 ext4     4.8G   11M  4.6G   1% /home
+/dev/root                         ext2     2.0G  986M  975M  51% /lib/modules
+shm                               tmpfs     64M     0   64M   0% /dev/shm
+tmpfs                             tmpfs    7.9G  864K  7.9G   1% /google/host/var/run
+```
+↑/home に割り当てられた5Gは自由に使えて、内容が維持される。
 
-73. ★Google Compute Engine インスタンスとオンプレミスのデータセンターの間にプライベート接続を作成します。
+
+73.  ★Google Compute Engine インスタンスとオンプレミスのデータセンターの間にプライベート接続を作成します。
 少なくとも20 Gbpsの接続が必要です。Google のベストプラクティスに従いまし
 接続をどのように設定するべきでしょうか？？
 
-- [ ] VPCを作成し、Dedicated Interconnect を使用してオンプレミスのデータセンターに接続します。
+- [x] VPCを作成し、Dedicated Interconnect を使用してオンプレミスのデータセンターに接続します。
 - [ ] VPCを作成し、単一のGoogle Cloud VPN を使ってオンプレミスのデータセンターに接続します。
 - [ ] Google Cloud Content Delivery Network（Google Cloud CDN）を作り、Dedicated Interconnect を使ってオンプレミスのデータセンターに接続します。
 - [ ] Google Cloud CDN を作り、単一のGoogle Cloud VPN でオンプレミスのデータセンターに接続します。
@@ -244,7 +267,7 @@ java.lang.SecurityException: SHA1 diest digest error for com/Altostart/CloakeSer
 何をするべきでしょうか？
 
 - [ ] 無料枠と継続利用割引を利用し、サービスコスト管理のためのスタッフを配置します。
-- [ ] 無料枠と継続利用割引を利用し、サービスコスト管理についてのトレーニングをチームに受けさせます。
+- [x] 無料枠と継続利用割引を利用し、サービスコスト管理についてのトレーニングをチームに受けさせます。
 - [ ] 無料枠と確定利用割引を利用し、サービスコスト管理のためのスタッフを配置します。
 - [ ] 無料枠と確定利用割引を利用し、サービスコスト管理についてのトレーニングをチームに受けさせます。
 
