@@ -514,11 +514,10 @@ VMには、多くのOS パッケージの依存関係があり、インスタン
 - [ ] Google Cloud Machine Learning Engine のパフォーマンスメトリックをStackdriver からGoogle BigQuery にエクスポートし、モデルの効率性を分析します。
 - [ ] 機械学習モデルのトレーニングをGoogle Cloud GPU からGoogle Cloud TPU に移行するためのロードマップを作って、結果を改善します。
 - [ ] Google Compute Engine のアナウンスを監視して、新しいCPU アーキテクチャが利用できるかどうかを調べ、パフォーマンスを向上するようになったら、すぐにアーキテクチャにモデルをデプロイします。
-- [x] 推奨事
-- [ ] 項の履歴と推奨事項の結果をGoogle BigQuery に保存し、トレーニングデータとして使用します。
+- [x] 推奨事項の履歴と推奨事項の結果をGoogle BigQuery に保存し、トレーニングデータとして使用します。
 
 
-98. ★会社の開発チームが、Docker化されたHTTPS Webアプリケーションを作成しました。
+98.  ★会社の開発チームが、Docker化されたHTTPS Webアプリケーションを作成しました。
 Google Kubernetes Engine（GKE）にアプリケーションをデプロイし、アプリケーションが自動的にスケーリングすることを確認する必要があります。
 GKE は、どのようにデプロイするのが良いでしょうか？
 
