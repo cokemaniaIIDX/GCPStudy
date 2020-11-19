@@ -12,7 +12,10 @@
     - VM削除と同時に削除される想定のため、暗号化に対応していない
     - インスタンスあたりの最大容量は3TB
   - CloudStorage
+    - CloudFUSEって名前で利用
   - Filestore
+    - いわゆるNAS
+    - NFSv3に対応
 
 ### App Engine
 - Standard
@@ -299,7 +302,6 @@ HDFS:HadoopDistributedFileSystem
 - ユースケース
   - サーバレス
   - 自動スケーリング
-  - 
 
 - ロケーション
   - Cloud Functionsはリージョナル
@@ -315,6 +317,8 @@ HDFS:HadoopDistributedFileSystem
     - メモリとCPUの使用量でも変動する
       - メモリ:512MB,CPU:800MHz → $0.000000925　等
 
+- 0にスケールできるもう一つのサービス
+  - AppEngine のひっかけとして出てくるかも
 
 ## セキュリティ アイデンティティ
 
