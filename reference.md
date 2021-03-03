@@ -12,6 +12,7 @@
     - VM削除と同時に削除される想定のため、暗号化に対応していない
     - インスタンスあたりの最大容量は3TB
   - CloudStorage
+    - いわゆるNAS
     - CloudFUSEって名前で利用
   - Filestore
     - いわゆるNAS
