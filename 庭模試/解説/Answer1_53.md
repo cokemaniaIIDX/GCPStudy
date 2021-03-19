@@ -653,7 +653,17 @@ Dress4Winのセキュリティチームは、Google Cloud Platform（GCP）上�
 - [ ] Google Cloud Storage Transfer Service ジョブを作成して、ファイルをRegional Storage バケットにコピーします。
 
   - Cloud Storage Transfer Service は、ほかのクラウド(AWS S3とか)からデータを持ってくるときに利用する
+  - Storage Transfer Service for OnPremise っていうサービスもあるけど、1TB未満のデータを転送するだけならgsutilでOK
   - RegionalよりColdLineのほうが安い
+  - 転送シナリオ表
+
+| 転送のシナリオ                                                | 推奨                                               |
+| :------------------------------------------------------------ | :------------------------------------------------- |
+| 別のクラウド ストレージプロバイダから転送する                 | Storage Transfer Service を使用する。              |
+| オンプレミスから 1 TB 未満のデータを転送する                  | gsutil を使用する。                                |
+| オンプレミスから 1 TB 超のデータを転送する                    | Transfer service for on-premises data を使用する。 |
+| 別の Cloud Storage リージョンから 1 TB 未満のデータを転送する | gsutil を使用する。                                |
+| 別の Cloud Storage リージョンから 1 TB 超のデータを転送する   | Storage Transfer Service を使用する。              |
 
 
 39. この質問については、Dress4Win のケーススタディを参照してください。Dress4Winは、アプリケーション サーバで使用するマシンタイプの導入を検討しています。
