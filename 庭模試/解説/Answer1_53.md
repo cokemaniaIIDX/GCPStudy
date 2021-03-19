@@ -769,7 +769,7 @@ Dress4Winには、エンドポイントの100％をカバーするエンドツ�
 停止を防ぐために開発者はどのような追加のテスト方法を採用するべきですか？
 
 - [ ] アプリケーション コードでGoogle Stackdriver Debugger を有効にして、コード内のエラーを表示する必要があります。
-- [ ] パブリック クラウドのステージング環境にユニット（単体）テストと実稼働規模の負荷テストを追加する必要があります。
+- [x] パブリック クラウドのステージング環境にユニット（単体）テストと実稼働規模の負荷テストを追加する必要があります。
 - [ ] パブリック クラウドのステージング環境でエンドツーエンドのテストを実行して、コードが意図したとおりに機能しているかどうかを判断する必要があります。
 - [ ] カナリアテストを追加して、開発者が新しいリリースが遅延に与える影響を測定できるようにします。
 
@@ -818,7 +818,7 @@ CIOは、今後6ヵ月以内に運用しているインフラストラクチャ�
 
 - [ ] Web アプリケーション レイヤーをGoogle App Engine に、MySQL をGoogle Cloud Datastore に、NASをGoogle Cloud Storage に移行します。RabbitMQ をデプロイし、Google Cloud Deployment Manager を使ってHadoop サーバをデプロイします。
 - [ ] RabbitMQ をGoogle Cloud Pub/Subに、Hadoop をGoogle BigQueryに、NASをGoogle Compute Engine とPersistent Disk ストレージに移行します。Tomcat をデプロイして、Google Cloud Deployment Manager を使ってNginx をデプロイします。
-- [ ] Tomcat およびNginx 用のマネージド インスタンス グループを実装します。MySQL をGoogle Cloud SQL に、RabbitMQ をGoogle Cloud Pub/Sub に、Hadoop をGoogle Cloud Dataproc に、NAS をGoogle Compute Engine とPersistent Disk ストレージに移行します。
+- [ ] Tomcat およびNginx 用のマネージド インスタンス グループを実装します。MySQL をGoogle Cloud SQL に、RabbitMQ をGoogle Cloud Pub/Sub に、Hadoop をGoogle Cloud Dataproc に、NASをGoogle Compute Engine とPersistent Disk ストレージに移行します。
 - [x] Tomcat およびNginx 用のマネージド インスタンス グループを実装します。MySQL をGoogle Cloud SQL に、RabbitMQ をGoogle Cloud Pub/Sub に、Hadoop をGoogle Cloud Dataproc に、NASをGoogle Cloud Storage に移行します。
 
   - WebサーバはGCEインスタンスグループ、MySQLはCloudSQL、RabbitMQはPub/Sub、HadoopはDataproc、NASはCloudStorageを使うのでDが〇
