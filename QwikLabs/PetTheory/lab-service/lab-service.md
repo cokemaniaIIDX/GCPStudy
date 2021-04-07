@@ -1,4 +1,4 @@
-# email service メモ
+# lab service メモ
 
 ## 概要
 
