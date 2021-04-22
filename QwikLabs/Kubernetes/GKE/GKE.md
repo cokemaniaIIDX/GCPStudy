@@ -40,3 +40,13 @@ kubectl get services
 curl http://ExternalIP:80
 ```
 
+### サービス作成
+
+```
+cat pods/secure-monolith.yaml
+
+kubectl create secret generic tls-certs --from-file tls/
+kubectl create configmap nginx-proxy-conf --from-file
+nginx/proxy.conf
+kubectl creat -f pods/secure-monolith.yaml
+```
