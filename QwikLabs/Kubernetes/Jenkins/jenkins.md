@@ -1,5 +1,16 @@
 # Jenkinsを使用したCD のメモ
 
+## このラボで学ぶもの
+
+- Kubernetes Engine で Jenkins クラスターを作成する
+- Jenkins のインストール
+  - helm
+  - credensial設定
+- Jenkins の機能を試す
+- Jenkins のパイプラインを作成してビルド&デプロイを自動化する
+  - SourceRepositoryとの連携
+
+
 ```sh
 $ helm install cd jenkins/jenkins -f jenkins/values.yaml --version 1.2.2 --wait
 NAME: cd
