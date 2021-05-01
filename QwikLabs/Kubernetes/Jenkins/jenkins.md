@@ -11,6 +11,29 @@
   - SourceRepositoryとの連携
 
 
+## クラスタ作成
+
+- Jenkinsが稼働するクラスタを作成する
+  - ノード数:2
+  - マシンタイプ:n1-standard-2
+  - アクセススコープ:SourceRepo(rw),cloudplatform(container registry用)
+
+```sh
+$ gcloud container clusters create jenkins-cd \
+--num-nodes 2 \
+--machine-type n1-standard-2 \
+--scopes "https://www.googleapis.com/auth/source.read_write,cloud-platform"
+```
+
+- 認証情報取得
+```sh
+$ gcloud container clusters get-credentials jenkins-cd
+
+$ kubectl cluster-info
+```
+
+## Helm でJenkinsをインストールする
+
 ```sh
 $ helm install cd jenkins/jenkins -f jenkins/values.yaml --version 1.2.2 --wait
 NAME: cd
