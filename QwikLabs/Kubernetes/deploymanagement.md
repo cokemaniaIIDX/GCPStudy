@@ -132,3 +132,54 @@ kubectl get pods | grep hello- | wc -l
 editして保存したらいきなり始まる
 historyでリビジョンが進んでるのが確認できる
 statusは実行したらログが流れて、完了したらkubectl rollout undo deployment/hellotって表示される
+
+## カナリアデプロイ
+
+カナリアデプロイでは、canary用のdeploymentを作成して、今動いてる元のやつと一緒に稼働させる
+すると、一部のユーザだけcanaryのdeploymentに接続されるようになる
+    →serviceはアプリ名`hello`を指定して実行してるので、dep/hello, dep/hello-canary 両方認識して実行する
+
+- 手順
+  - hello-canary.yamlを作成して、helloのバージョンを変える
+  - canary.yamlをdeploymentとして作成する
+
+```sh
+cat <<EOF > deployments/hello-canary.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello
+  template:
+    metadata:
+      labels:
+        app: hello
+        track: canary
+        # Use ver 2.0.0 so it matches version on service selector
+        version: 2.0.0
+    spec:
+      containers:
+        - name: hello
+          image: kelseyhightower/hello:2.0.0
+          ports:
+            - name: http
+              containerPort: 80
+            - name: health
+              containerPort: 81
+```
+
+- 確認
+
+```
+kubectl create -f deployments/hello-canary.yaml
+
+kubectl get deployments
+
+curl -ks https://`kubectl get svc frontend -o=jsonpath="{.status.loadBalancer.ingress[0].ip}"`/version
+→1/4の確率で2.0.0になる
+```
+
