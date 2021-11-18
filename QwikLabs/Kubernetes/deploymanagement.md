@@ -200,5 +200,36 @@ UIの変更したときなどで、
 
 sessionAffinity: ClientIP ってのをservice.yamlに追加したら行けるらしい
 
+
 ## Blue/Greenデプロイ
 
+カナリアみたいに新しいバージョンを見せたくなくて、
+ローリングみたいに動的に更新するでもないときに使えるのがBlue/Green
+
+古い`blue`と新しい`Green`をどっちも用意して、
+アップデート時にLBで宛先を切り替えて実行する
+
+リソースが2倍になるから経済的じゃないけど、アップデートの安心感はある
+
+```
+デプロイメントを作成する
+kubectl create -f deployments/hello-green.yaml
+
+この時点ではまだblueが動いてるので1.0.0が返る
+curl -ks https://`kubectl get svc frontend -o=jsonpath="{.status.loadBalancer.ingress[0].ip}"`/version
+{"version":"1.0.0"}
+
+グリーンのサービスを適用する
+kubectl apply -f services/hello-green.yaml
+
+これで常に2.0.0になる
+curl -ks https://`kubectl get svc frontend -o=jsonpath="{.status.loadBalancer.ingress[0].ip}"`/version
+{"version":"2.0.0"}
+
+ロールバックは、blue(元のやつ)のサービスを適用しなおす
+kubectl apply -f services/hello-blue.yaml
+
+これで常に1.0.0になる
+curl -ks https://`kubectl get svc frontend -o=jsonpath="{.status.loadBalancer.ingress[0].ip}"`/version
+{"version":"1.0.0"}
+```
