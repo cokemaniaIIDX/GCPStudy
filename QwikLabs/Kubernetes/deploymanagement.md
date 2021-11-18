@@ -119,3 +119,16 @@ kubectl get pods | grep hello- | wc -l
 3
 ```
 
+## ローリングアップデート
+
+ローリングアップデートでは、デプロイメントファイルを修正した後、
+レプリカセットが順次新しく作成されて行って、古いものは落ちていく
+徐々に新しいレプリカ数が増えていく
+
+- 主に使うコマンド
+  - kubectl `edit` deployment hello
+  - kubectl `rollout` `history|pause|resume|status` deployment/hello
+
+editして保存したらいきなり始まる
+historyでリビジョンが進んでるのが確認できる
+statusは実行したらログが流れて、完了したらkubectl rollout undo deployment/hellotって表示される
