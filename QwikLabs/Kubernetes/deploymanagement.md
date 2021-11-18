@@ -183,3 +183,11 @@ curl -ks https://`kubectl get svc frontend -o=jsonpath="{.status.loadBalancer.in
 →1/4の確率で2.0.0になる
 ```
 
+### カナリア時のセッションアフィニティについて
+
+UIの変更したときなどで、
+カナリアがあるためにアクセスごとにUIが変わってしまうと混乱するかもしれない。
+こういう時はセッションアフィニティを使う。
+これを使うとユーザをいずれかのデプロイに固定できるらしい
+
+sessionAffinity: ClientIP ってのをservice.yamlに追加したら行けるらしい
