@@ -8,13 +8,14 @@
 - 環境変数設定
 
 ```
-$ CLUSTER_VERSION=$(gcloud container get-server-config --region us-west1 --format='value(validMasterVersions[0])')
+$ CLUSTER_VERSION=$(gcloud container get-server-config --region asia-northeast1 --format='value(validMasterVersions[0])')
 
 $ export CLOUDSDK_CONTAINER_USE_V1_API_CLIENT=false
 
 $ echo $CLUSTER_VERSION $CLOUDSDK_CONTAINER_USE_V1_API_CLIENT
 ```
 コントロールプレーンのバージョンと、v1APIを使わないように変数設定
+ちなみにこのコマンドはRapidシリーズのデフォルトでした
 
 - クラスタ作成
 
@@ -22,9 +23,19 @@ $ echo $CLUSTER_VERSION $CLOUDSDK_CONTAINER_USE_V1_API_CLIENT
 $ gcloud container clusters create repd \
 --cluster-version=${CLUSTER_VERSION} \
 --machine-type=n1-standard-4 \
---region=us-west1 \
+--region=asia-northeast1 \
 --num-nodes=1 \
---node-locations=us-west1-a,us-west1-b,us-west1-c
+--node-locations=asia-northeast1-a,asia-northeast1-b,asia-northeast1-c
+
+kubeconfig entry generated for repd.
+NAME: repd
+LOCATION: asia-northeast1
+MASTER_VERSION: 1.21.5-gke.1802
+MASTER_IP: 35.221.66.124
+MACHINE_TYPE: n1-standard-4
+NODE_VERSION: 1.21.5-gke.1802
+NUM_NODES: 3
+STATUS: RUNNING
 ```
 
 ## リージョンディスクを使ってアプリをデプロイ
@@ -44,16 +55,16 @@ $ kubectl apply -f - <<EOF
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: repd-west1-a-b-c
+  name: repd-east1-a-b-c
 provisioner: kubernetes.io/gce-pd
 parameters:
   type: pd-standard
   replication-type: regional-pd
-  zones: us-west1-a, us-west1-b, us-west1-c
+  zones: asia-northeast1-a, asia-northeast1-b, asia-northeast1-c
 EOF
 ```
 
-- 永続ボリュームの要求を作成
+- Persistent Volume Claim を作成
 
 ```
 $ kubectl apply -f - <<EOF
@@ -95,6 +106,13 @@ spec:
   storageClassName: repd-west1-a-b-c
 EOF
 ```
+mariadb用のものと、wp用のもので2つ作る
+mariadbはStorageClassにstandardを使ってる
+これはkubectl get storageclassで出てくるデフォルトのストレージクラス
+wp用のストレージはさっき適用したストレージクラス
+
+こんな感じでストレージクラスを分けることで、
+ストレージを用途別に分けたりバックアップ用にしたりといった使い方ができる
 
 - 確認
 
