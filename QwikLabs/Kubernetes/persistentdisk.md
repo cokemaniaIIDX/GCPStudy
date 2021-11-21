@@ -14,6 +14,7 @@ $ export CLOUDSDK_CONTAINER_USE_V1_API_CLIENT=false
 
 $ echo $CLUSTER_VERSION $CLOUDSDK_CONTAINER_USE_V1_API_CLIENT
 ```
+コントロールプレーンのバージョンと、v1APIを使わないように変数設定
 
 - クラスタ作成
 
@@ -167,3 +168,25 @@ $ kubectl get pods -l app.kubernetes.io/instance=wp-repd -o wide
 NAME                                READY   STATUS    RESTARTS   AGE   IP          NODE                                  NOMINATED NODE   READINESS GATES
 wp-repd-wordpress-976cf4cd5-tvpn6   0/1     Running   1          93s   10.84.1.9   **gke-repd-default-pool-324d3f26-qb3v**   <none>           <none>
 ```
+
+なんか一生READYにならんかった
+
+## とりあえず、まとめ
+
+リージョン永続ディスクを使うには、
+Storage Class,
+Persistent Volume Claim
+を作成する必要があって、それぞれをkubectlで適用させる
+
+- Storage Class
+
+永続ディスクの仕様を指定するクラス
+ディスク名、リージョン、fsタイプとかを指定する
+デフォルトのfstypeはext4
+特に、Windowsノードで使用する場合、デフォルトのext4が使えないので、
+ここでほかのfstypeを指定する
+
+- Persistent Volume Claim
+
+PersistentVolumeリソースに対するリクエスト
+これによって、PersistentVolumeの具体的なサイズ、アクセスモード、StorageClassの指定ができる
