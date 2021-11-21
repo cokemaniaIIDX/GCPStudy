@@ -84,3 +84,41 @@ $ kubectl get persistentvolumeclaims
 
 ## WordPress デプロイ
 
+```
+$ helm install wp-repd \
+--set smtpHost= --set smtpPort= --set smtpUser= \
+--set smtpPassword= --set smtpUsername= --set smtpProtocol= \
+--set persistence.storageClass=repd-west1-a-b-c \
+--set persistence.existingClaim=wp-repd-wordpress \
+--set persistence.accessMode=ReadOnlyMany \
+stable/wordpress
+```
+
+- pod確認
+
+```
+$ kubectl get pods
+```
+
+- IPアドレス確認
+
+```
+while [[ -z $SERVICE_IP ]]; do SERVICE_IP=$(kubectl get svc wp-repd-wordpress -o jsonpath='{.status.loadBalancer.ingress[].ip}');
+echo "Waiting for service external IP..."; sleep 2; done; echo
+```
+
+- ディスク作成確認
+
+```
+while [[ -z $PV ]]; do PV=$(kubectl get pvc wp-repd-wordpress -o jsonpath='{.spec.volumeName}'); echo "Waiting for PV..."; sleep 2; done
+kubectl describe pv $PV
+```
+
+- パスワード取得
+
+```
+$ cat - <<EOF
+Username: user
+Password: $(kubectl get secret --namespace default wp-repd-wordpress -o jsonpath="{.data.wordpress-password}" | base64 --decode)
+EOF
+```
