@@ -103,7 +103,7 @@ spec:
   resources:
     requests:
       storage: 200Gi
-  storageClassName: repd-west1-a-b-c
+  storageClassName: repd-east1-a-b-c
 EOF
 ```
 mariadb用のものと、wp用のもので2つ作る
@@ -127,7 +127,7 @@ $ kubectl get persistentvolumeclaims
 $ helm install wp-repd \
 --set smtpHost= --set smtpPort= --set smtpUser= \
 --set smtpPassword= --set smtpUsername= --set smtpProtocol= \
---set persistence.storageClass=repd-west1-a-b-c \
+--set persistence.storageClass=repd-east1-a-b-c \
 --set persistence.existingClaim=wp-repd-wordpress \
 --set persistence.accessMode=ReadOnlyMany \
 stable/wordpress
