@@ -56,7 +56,7 @@ EOF
 
 ```
 $ kubectl apply -f - <<EOF
-kind: PersistentBolumeClaim
+kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: data-wp-repd-mariadb-0
@@ -68,10 +68,30 @@ metadata:
 spec:
   accessModes:
     - ReadOnlyMany
-  resoueces:
+  resources:
     requests:
       storage: 8Gi
   storageClassName: standard
+EOF
+
+$ kubectl apply -f - <<EOF
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: wp-repd-wordpress
+  namespace: default
+  labels:
+    app: wp-repd-wordpress
+    chart: wordpress-5.7.1
+    heritage: Tiller
+    release: wp-repd
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 200Gi
+  storageClassName: repd-west1-a-b-c
 EOF
 ```
 
@@ -121,4 +141,29 @@ $ cat - <<EOF
 Username: user
 Password: $(kubectl get secret --namespace default wp-repd-wordpress -o jsonpath="{.data.wordpress-password}" | base64 --decode)
 EOF
+```
+
+## ゾーン障害をシミュレーションする
+
+- 現状確認
+
+```
+$ kubectl get pods -l app.kubernetes.io/instance=wp-repd -o wide
+
+NAME                                READY   STATUS    RESTARTS   AGE     IP          NODE                                  NOMINATED NODE   READINESS GATES
+wp-repd-wordpress-976cf4cd5-49qxf   1/1     Running   0          6m23s   10.84.0.4   gke-repd-default-pool-c91a8b77-fzz5   <none>           <none>
+```
+
+- インスタンスグループ削除(ゾーン障害発生)
+
+```
+$ gcloud compute instance-groups managed delete ${IG} --zone ${ZONE}
+```
+
+- NODEが置き換わっていることを確認
+
+```md
+$ kubectl get pods -l app.kubernetes.io/instance=wp-repd -o wide
+NAME                                READY   STATUS    RESTARTS   AGE   IP          NODE                                  NOMINATED NODE   READINESS GATES
+wp-repd-wordpress-976cf4cd5-tvpn6   0/1     Running   1          93s   10.84.1.9   **gke-repd-default-pool-324d3f26-qb3v**   <none>           <none>
 ```
