@@ -92,7 +92,7 @@ gsutil -m cp -r gs://spls/gsp133/gke-dedicated-game-server .
 今回はアジアでよさそう
 
 ```
-export GCR_REGION=asia-northeast1 PROJECT_ID=$PROJECT_ID
+export GCR_REGION=asia PROJECT_ID=$PROJECT_ID
 printf "$GCR_REGION \n$PROJECT_ID\n"
 ```
 
@@ -103,6 +103,14 @@ printf "$GCR_REGION \n$PROJECT_ID\n"
 
 ```
 cd gke-dedicated-game-server/openarena
+```
+内容
+```
+aptでopenarena-serverをインストール
+不要なディレクトリとかを削除
+WORKDIRを指定、作成
+single-match.cfgを配置
+UDP 27950,27960を開放
 ```
 
 - ビルド
@@ -167,7 +175,7 @@ sudo apt-get -y install openarena-server
 sudo gsutil cp gs://qwiklabs-assets/single-match.cfg /usr/share/games/openarena/baseoa/single-match.cfg
 
 // 終わったらマウント解除して終了
-sudo umount -f -l /user/share/games/openarena/baseoa/
+sudo umount -f -l /usr/share/games/openarena/baseoa/
 sudo shutdown -h now
 ```
 
@@ -257,7 +265,7 @@ KubernetesAPIに状態を公開してAPI経由で処理を行うようにする
 内容は用意されてるのをもらって使う
 
 ```
-export GCR_REGION=asia-northeast1
+export GCR_REGION=asia
 export PROJECT_ID=PROJECT_ID
 
 cd ../scaling-manager
@@ -292,3 +300,69 @@ kubectl get pods
 
 ### スケーリングの確認
 
+- 意識するべきこと
+  - CPUやメモリなどの標準的な指標ではゲームサーバのスケーリング開始に純分な情報を取得できないことがある
+  - 最適化されたDGSコンテナを既存のノードでスケジューリングするのは数秒かかってしまうので、あらかじめノードを準備しておく必要がある
+  - オートスケーラーはPodのシャットダウンを適切に処理できないらしい
+    - スケジューリングによって削除されるノードからPodをドレインする必要がある
+    - 対戦実行中のノードを停止することは許されない
+
+- スケールアップについて
+  - Kubernetes的には1vCPU当たり500MBのメモリの制限がある？
+    - →[要確認](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container)
+  - そこで、1vCPU当たり600MBメモリの割合のn1-highcpuタイプのインスタンスを使うと、1ノード1ポッド予定でもメモリ不足に陥る心配がない
+  - 今回は70%を超えるvCPUがポッドに割り当てられた場合ノードを追加するように設定する
+  - 本番環境ではもう少し正確にプロファイリングして、`limits`,`requests`のポッドプロパティを設定することがお勧めされている
+
+- スケールダウンについて
+  - スケールダウンはスケールアップと違ってちょっと複雑
+  - scaling_manager.shを使う
+    - 削除対象のノードを選択する
+    - cordonコマンドで選択されたノードにunschedulableのマークを付ける
+    - abandon-instanceコマンドでノードがMIGから削除される
+  - node_stopper.shではスケジュールできないabandon-instanceを監視してDGSポッドがないことを確認
+    - ノード上ですべての対戦が終了してポッドが正常に終了したら、VMをシャットダウンする
+
+- 一般的に
+  - 新しいDGSインスタンスを追加するタイミングはマッチメーカーが制御する
+  - ゲームが正常に終了したらポッドが正常に終了するはずなので、スケールダウンを明示的に何か行う必要はないはず
+  - プレイヤー数が少なくて新しい対戦が生成されない場合は、対戦終了時にポッドが徐々に減っていってポッド数がスケールダウンする
+
+### インスタンスをリクエスト
+
+プレイヤーが対戦にマッチした際に、マッチメーカープロセスがKubernetesAPIを使ってインスタンスをリクエストする
+このテストをやってみる
+
+```
+cd ..
+sed -i "s/\[GCR_REGION\]/$GCR_REGION/g" openarena/k8s/openarena-pod.yaml
+sed -i "s/\[PROJECT_ID\]/$PROJECT_ID/g" openarena/k8s/openarena-pod.yaml
+
+kubectl apply -f openarena/k8s/openarena-pod.yaml
+kubectl get pods
+→ポッドをデプロイ
+```
+
+### DGSに接続してみる
+
+PodのIP確認して接続を試みる
+```
+export NODE_NAME=$(kubectl get pod openarena.dgs \
+    -o jsonpath="{.spec.nodeName}")
+export DGS_IP=$(gcloud compute instances list \
+    --filter="name=( ${NODE_NAME} )" \
+    --format='table[no-heading](EXTERNAL_IP)')
+printf "Node Name: $NODE_NAME \nNode IP  : $DGS_IP \nPort         : 27961\n"
+printf " launch client with: \nopenarena +connect $DGS_IP +set net_port 27961\n"
+```
+
+→OpenArena起動して確認してみる
+
+### スケーリングマネージャのテスト
+
+負荷をかけて、ノードがスケーリングされるのを確認
+
+```
+source ./scaling-manager/tests/test-loader.sh
+→1分につき4つのDGSポッドが追加されるよう5分間負荷をかけるスクリプト
+```
