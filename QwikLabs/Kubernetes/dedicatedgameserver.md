@@ -264,3 +264,31 @@ cd ../scaling-manager
 chmod +x build-and-push.sh
 source ./build-and-push.sh
 ```
+
+- デプロイファイルを構成する
+
+Build & Push が上のスクリプトで完了するので、
+次はデプロイメントを起動する
+
+```
+gcloud compute instance-groups managed list
+→ベースインスタンス名をコピーする
+
+export GKE_BASE_INSTANCE_NAME=[BASE_INSTANCE_NAME]
+export GCP_ZONE=asia-northeast1-b
+printf "$GCR_REGION \n$PROJECT_ID \n$GKE_BASE_INSTANCE_NAME \n$GCP_ZONE \n"
+→環境変数を設定
+
+sed -i "s/\[GCR_REGION\]/$GCR_REGION/g" k8s/openarena-scaling-manager-deployment.yaml
+sed -i "s/\[PROJECT_ID\]/$PROJECT_ID/g" k8s/openarena-scaling-manager-deployment.yaml
+sed -i "s/\[ZONE\]/$GCP_ZONE/g" k8s/openarena-scaling-manager-deployment.yaml
+sed -i "s/\gke-openarena-cluster-default-pool-\[REPLACE_ME\]/$GKE_BASE_INSTANCE_NAME/g" k8s/openarena-scaling-manager-deployment.yaml
+→yamlファイル内の変数を置き換えていく
+
+kubectl apply -f k8s/openarena-scaling-manager-deployment.yaml
+kubectl get pods
+→デプロイメント起動、確認
+```
+
+### スケーリングの確認
+
