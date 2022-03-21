@@ -4,7 +4,7 @@ KubernetesはHTTPトラフィックをIngressによって処理する
 
 - Ingress
   - Ingress Resource    : 受信トラフィックがサービスにアクセスするためのルールの集合
-  - Ingress Controller  : ルールに従ってトラフィックを処理する機能　→ NGINXを使える
+  - Ingress Controller  : ルールに従ってトラフィックを処理する機能→ NGINXを使える
 
 - NGINX Ingress Controllerの特徴
   - 対応        : WebSocket,SSL の負荷分散ができる
