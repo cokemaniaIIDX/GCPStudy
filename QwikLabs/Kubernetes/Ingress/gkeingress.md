@@ -543,3 +543,83 @@ Events:
 ↓が表示されればOK
 
 ![hello, nginx](hello_nginx.png)
+
+## TLS対応させる
+
+### 固定IPを取得
+
+- terraformで作成
+
+IPは`プレミアム`じゃないとうまくいかない
+→[参考](https://cloud.google.com/kubernetes-engine/docs/how-to/service-parameters?hl=ja#lb_ip)
+
+```s:google_compute_address.tf
+resource "google_compute_address" "ingress-external-ip" {
+  name         = "ingress-ip"
+  description  = "external IP for Ingress-Cluster"
+  network_tier = "PREMIUM"
+  region       = "asia-northeast1"
+}
+```
+
+### Kubernetes Secret オブジェクト作成
+
+certbotで取得した証明書を`Kubernetes Secret`オブジェクトとして作成
+
+作業ユーザのディレクトリに持ってくる
+
+```
+# cp /etc/nginx/tls/server.* /home/coke/
+# chown coke. /home/coke/server.* 
+```
+
+- Kubernetes Secret オブジェクト作成
+
+```sh
+$ kubectl create secret tls ingress-tls --cert server.crt --key server.key
+secret/ingress-tls created
+```
+
+- Ingressに適用
+
+```yaml:ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: ingress-ip
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  tls:
+  - secretName: ingress-tls
+  rules:
+  - http:
+      paths:
+      - path: /*
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: ingress-service
+            port:
+              number: 80
+```
+
+### Cloud DNS で DNSレコード登録
+
+- コンソールで実施
+
+↓の通りでDNSレコードを登録
+
+```
+ingress.<ドメイン>.net 300 IN A <さっき作成した固定IP>
+```
+
+## 確認
+
+ブラウザで`https://ingress.<ドメイン>.net/`にアクセス！！
+
+↓が表示されたら完璧です
+
+![hello_nginx_with_https](hello_nginx_with_https.png)
