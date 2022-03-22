@@ -3,6 +3,11 @@
 GKEの`Ingressオブジェクト`を利用した HTTPS LB を作成して、
 バックエンドに対する負荷分散を行う
 
+## 仕様
+
+- Nginxコンテナは8080ポートでLISTEN
+- Nginxコンテナを展開するServiceは80ポートとpodの8080ポートを接続させる
+
 ## 前提
 
 - 確認用VMインスタンスにNGINXをインストール済み
@@ -255,8 +260,7 @@ $ gcloud auth configure-docker asia-northeast1-docker.pkg.dev
 
 ### コンテナ作成、GCRにプッシュ
 
-nginxの公式イメージをプルしてきて`Google Artifact Registry`にプッシュする
-特に中身はいじらずそのまま使う
+nginxの公式イメージをプルしてきて*いろいろいじった上で*`Google Artifact Registry`にプッシュする
 
 - pull
 
@@ -268,12 +272,119 @@ REPOSITORY                                                TAG       IMAGE ID    
 nginx                                                     latest    f2f70adc5d89   3 days ago      142MB
 ```
 
+#### いじる内容
+
+- nginx.conf
+  - port:8080 でLISTENしたいので、nginx.confを修正する
+  - if_modified_sice : offにする
+    - ↑onだと、変更がなかった時に304のレスポンスを返すようになり、LBのヘルスチェックを不合格にしてしまう
+      - GKE Ingress のLBは200のみヘルスチェックを合格させるため
+
+```conf:nginx.conf
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
+
+include /usr/share/nginx/modules/*.conf;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile            off;
+    if_modified_since   off; # for healthcheck
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 2048;
+
+    include             /etc/nginx/mime.types;
+    default_type        application/octet-stream;
+
+    include /etc/nginx/conf.d/*.conf;
+
+    server {
+        listen       8080 default_server;
+        listen       [::]:8080 default_server;
+        server_name  _;
+        root	     /usr/share/nginx/html;
+
+        include /etc/nginx/default.d/*.conf;
+
+        location / {
+	      }
+
+        error_page 404 /404.html;
+            location = /40x.html {
+        }
+
+        error_page 500 502 503 504 /50x.html;
+            location = /50x.html {
+        }
+    }
+}
+```
+
+- healtchcheck.html
+
+コンテナ内に配置するhealthcheck用のHTMLファイルを作成
+
+```html:healthcheck.html
+<html>
+<head>
+    <title>healthcheck</title>
+</head>
+<body>
+    healthcheck ok.
+</body>
+</html>
+```
+
+#### dcoker 操作
+
+- Dockerfile 作成
+
+nginxの公式イメージをプルしてきて、
+さっき作ったファイルをコンテナ内に配置する設定
+
+```Dockerfile:Dockerfile
+FROM nginx:latest
+LABEL maintainer="cokemaniaIIDX cokemaniaIIDX@gmail.com"
+
+RUN echo "building nginx server..."
+
+RUN echo "copy conf files"
+COPY nginx.conf /etc/nginx/nginx.conf
+
+RUN echo "copy healthcheck file"
+COPY healthcheck.html /usr/share/nginx/html/healthcheck.html
+```
+
+- docker build実行
+
+```sh
+$ docker build . custom-nginx
+```
+
 - tagづけ
 
 pull してきた nginx イメージを Artifact Registryにアップロードできるようにタグ付けする
 
 ```
-$ docker tag nginx asia-northeast1-docker.pkg.dev/<GCP_PROJECT_ID>/ingress/nginx:latest
+$ docker tag nginx asia-northeast1-docker.pkg.dev/<GCP_PROJECT_ID>/ingress/custom-nginx:v2.0
+
+確認
+$ docker images
+REPOSITORY                                                                TAG       IMAGE ID       CREATED          SIZE
+asia-northeast1-docker.pkg.dev/<PROJECTID>/ingress/custom-nginx   v2.0      a3e3c5c36651   45 minutes ago   142MB
 ```
 
 - push
@@ -281,12 +392,12 @@ $ docker tag nginx asia-northeast1-docker.pkg.dev/<GCP_PROJECT_ID>/ingress/nginx
 imageをpush！
 
 ```
-$ docker push asia-northeast1-docker.pkg.dev/<PROJECTID>/ingress/nginx
+$ docker push asia-northeast1-docker.pkg.dev/<PROJECTID>/ingress/nginx:v2.0
 ```
 
 ### Deployment の作成
 
-```yaml
+```yaml:ingress_deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -305,9 +416,15 @@ spec:
     spec:
       containers:
       - name: app-1
-        image: "asia-northeast1-docker.pkg.dev/imade-gaming-265014/ingress/nginx:latest"
+        image: "asia-northeast1-docker.pkg.dev/<PROJECTID>/ingress/custom-nginx:v2.0"
         ports:
         - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthcheck.html
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
 ```
 
 - 適用
@@ -319,18 +436,19 @@ deployment.apps/ingress-deployment created
 
 ### Service の作成
 
-```yaml
+```yaml:ingress_service.yaml
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    cloud.google.com/backend-config: '{"ports":{"8080":"bec"}}'
   name: ingress-service
 spec:
   type: NodePort
-  selector:
-    app: nginx
   ports:
-  - protocol: TCP
+  - name: http
     port: 80
+    protocol: TCP
     targetPort: 8080
 ```
 
@@ -341,9 +459,24 @@ $ kubectl apply -f ingress_service.yaml
 service/ingress-service created
 ```
 
+### backend config の作成
+
+[公式ドキュメント参照](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features?hl=ja)
+
+```yaml:ingress_backendconfig.yaml
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: bec
+spec:
+  healthCheck:
+    requestPath: /healthcheck.html
+  timeoutSec: 60
+```
+
 ### Ingress の作成
 
-```yaml
+```yaml:ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -370,3 +503,43 @@ $ kubectl apply -f ingress.yaml
 ingress.networking.k8s.io/ingress created
 ```
 
+※ingressを作成すると、ingressが勝手にLBを作成します
+「ネットワークサービス」→「Cloud Load Balancing」から確認してみよう
+
+## 接続テスト
+
+```sh
+$ kubectl get ingress
+NAME      CLASS    HOSTS   ADDRESS          PORTS   AGE
+ingress   <none>   *       <ここにIP>       80      88m
+
+$ kubectl describe ingress ingress
+Name:             ingress
+Labels:           <none>
+Namespace:        default
+Address:          <ここにIP>
+Default backend:  default-http-backend:80 (10.148.3.2:8080)
+Rules:
+  Host        Path  Backends
+  ----        ----  --------
+  *           
+              /*   ingress-service:80 (10.148.3.19:8080,10.148.3.20:8080,10.148.3.21:8080)
+Annotations:  ingress.kubernetes.io/backends: {"k8s-be-30073--850c385e18f8440c":"HEALTHY","k8s-be-32066--850c385e18f8440c":"HEALTHY"} # ← HEALTHYであることを確認する
+              ingress.kubernetes.io/forwarding-rule: k8s2-fr-2vr3o74u-default-ingress-fgx1jtuq
+              ingress.kubernetes.io/target-proxy: k8s2-tp-2vr3o74u-default-ingress-fgx1jtuq
+              ingress.kubernetes.io/url-map: k8s2-um-2vr3o74u-default-ingress-fgx1jtuq
+              kubernetes.io/ingress.class: gce
+Events:
+  Type     Reason     Age                   From                     Message
+  ----     ------     ----                  ----                     -------
+  Warning  Translate  45m (x16 over 48m)    loadbalancer-controller  Translation failed: invalid ingress spec: service "default/ingress-service" is type "ClusterIP", expected "NodePort" or "LoadBalancer"
+  Normal   Sync       44m                   loadbalancer-controller  UrlMap "k8s2-um-2vr3o74u-default-ingress-fgx1jtuq" updated
+  Normal   Sync       2m36s (x16 over 89m)  loadbalancer-controller  Scheduled for sync
+```
+
+`describe ingress`コマンドで`backend`が`HEALTH`であることが確認できれば、接続可能なはずです
+表示されているIPにブラウザからアクセスしてみよう
+
+↓が表示されればOK
+
+![hello, nginx](hello_nginx.png)
