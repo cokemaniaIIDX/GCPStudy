@@ -16,6 +16,12 @@ spec:
     spec:
       containers:
       - name: app-1
-        image: "asia-northeast1-docker.pkg.dev/imade-gaming-265014/ingress/nginx:latest"
+        image: "asia-northeast1-docker.pkg.dev/imade-gaming-265014/ingress/custom-nginx:v2.0"
         ports:
         - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthcheck.html
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
