@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: ingress
   annotations:
-    kubernetes.io/ingress.global-static-ip-name: imade-gke01
+    kubernetes.io/ingress.global-static-ip-name: ingress-ip
     kubernetes.io/ingress.class: "gce"
     kubernetes.io/ingress.allow-http: "false"
 spec:
