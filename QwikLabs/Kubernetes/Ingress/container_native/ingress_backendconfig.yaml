@@ -1,0 +1,15 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: bec
+spec:
+  securityPolicy:
+    name: ingress-default
+  healthCheck:
+    timeoutSec: 30
+    checkIntervalSec: 60
+    type: HTTP
+    port: 80
+    requestPath: /healthcheck.html
+    healthyThreshold: 1
+    unhealthyThreshold: 5

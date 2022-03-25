@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx-app-1
+        image: "asia-northeast1-docker.pkg.dev/imade-gaming-265014/ingress/custom-nginx:v1.0"
+        ports: 
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthcheck.html
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
