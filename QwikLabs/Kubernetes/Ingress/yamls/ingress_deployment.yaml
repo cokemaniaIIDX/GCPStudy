@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress-deployment1
+spec:
+  selector:
+    matchLabels:
+      app: nginx1
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginx1
+    spec:
+      containers:
+      - name: nginx-app-1
+        image: "asia-northeast1-docker.pkg.dev/imade-gaming-265014/ingress/ingress-nginx:v1.0"
+        ports: 
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthcheck.html
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress-deployment2
+spec:
+  selector:
+    matchLabels:
+      app: nginx2
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginx2
+    spec:
+      containers:
+      - name: nginx-app-2
+        image: "asia-northeast1-docker.pkg.dev/imade-gaming-265014/ingress/ingress-nginx:v2.0"
+        ports: 
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthcheck.html
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress-deployment3
+spec:
+  selector:
+    matchLabels:
+      app: nginx3
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginx3
+    spec:
+      containers:
+      - name: nginx-app-3
+        image: "asia-northeast1-docker.pkg.dev/imade-gaming-265014/ingress/ingress-nginx:v3.0"
+        ports: 
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthcheck.html
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
