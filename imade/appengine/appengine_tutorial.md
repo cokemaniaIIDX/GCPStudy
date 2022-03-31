@@ -508,6 +508,28 @@ $ gcloud app deploy
 $ gcloud app browse
 ```
 
+## 片づけ
+
+appengine の terraformは削除しておく
+
+```tf:app_engine.tf
+#============#
+# App Engine #
+#============#
+
+/* 来るべき時まで無効化する
+
+resource "google_app_engine_application" "imade-gcp" {
+  project = var.project
+  location_id = "asia-northeast1"
+}
+
+*/
+```
+
+→消せねぇ。。。
+AppEngineやるときはプロジェクトごと作ろ。。
+
 # 完了！
 
 完全に理解したｗ
