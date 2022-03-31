@@ -223,3 +223,185 @@ $ http://localhost:8080
 ```
 $ gcloud app deploy
 ```
+
+## 6. Firebase連携
+
+https://console.firebase.google.com/?hl=ja
+でプロジェクト作成
+
+Authentication → 始める
+
+  ログインプロバイダ メール/パスワード を `有効にする` → 保存
+
+  承認済みドメイン ドメインを追加 → `imade-gaming-265014.an.r.appspot.com`を追加
+
+### firebaseをWEBサービスに追加
+
+firebaseのページでアプリを追加 → コード → アプリ名適当に
+~~scriptタグが表示されるのでコピペする~~
+※Firebaseで出力されるコードスニペットではうまくいかなかったので
+チュートリアルに書いてあるコードのほうを利用する
+
+```html:index.html
+<script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.8.0/firebase-auth.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC6XESRzG4DXBTusAXYEX_aVbTmOUB6PJ8",
+    authDomain: "imade--test.firebaseapp.com",
+    projectId: "imade--test",
+    storageBucket: "imade--test.appspot.com",
+    messagingSenderId: "476483753824",
+    appId: "1:476483753824:web:0fcfa8c2515c59854c7005"
+  };
+  firebase.initializeApp(firebaseConfig);
+</script>
+```
+
+headには↓を記載
+
+```html:index.html
+<head>
+  <title>Datastore and Firebase Auth Example</title>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://www.gstatic.com/firebasejs/ui/4.4.0/firebase-ui-auth.js"></script>
+  <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.4.0/firebase-ui-auth.css" />
+</head>
+```
+
+中身を修正
+
+```html:index.html
+<body>
+  <script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.8.0/firebase-auth.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC6XESRzG4DXBTusAXYEX_aVbTmOUB6PJ8",
+      authDomain: "imade--test.firebaseapp.com",
+      projectId: "imade--test",
+      storageBucket: "imade--test.appspot.com",
+      messagingSenderId: "476483753824",
+      appId: "1:476483753824:web:0fcfa8c2515c59854c7005"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
+  <h1>Datastore and Firebase Auth Example</h1>
+
+  <div id=""firebaseui-auth-container></div>
+
+  <button id="sign-out" hidden="true">Sign Out</button>
+
+  <div id="login-info" hidden="true">
+    <h2>Login info:</h2>
+    {% if user_data %}
+      <dl>
+        <dt>Name</dt><dd>{{ user_data['name'] }}</dd>
+        <dt>Email</dt><dd>{{ user_data['email'] }}</dd>
+        <td>Last 10 visits</td><dd>
+          {% for time in times %}
+            <p>{{ time['timestamp'] }}</p>
+          {% endfor %}</dd>
+      </dl>
+    {% elif error_message %}
+      <p>Error: {{ error_message }}</p>
+    {% endif %}
+  </div>
+</body>
+</html>
+```
+
+### 認証用メソッドを追加
+
+```js:script.js
+'use strict';
+
+window.addEventListener('load', function () {
+  document.getElementById('sign-out').onclick = function () {
+    firebase.auth().signOut();
+  };
+
+  var uiConfig = {
+    signInSuccessUrl: '/',
+    signInOptions: [
+      firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+      firebase.auth.EmailAuthProvider.PROVIDER_ID,
+    ],
+    tosUrl: 'https://imade-gaming-265014.an.r.appspot.com'
+  };
+
+  firebase.auth().onAuthStateChanged(function (user) {
+    if (user) {
+      document.getElementById('sign-out').hidden = false;
+      document.getElementById('login-info').hidden = false;
+      console.log(`Signed in as ${user.displayName} (${user.email})`);
+      user.getIdToken().then(function (token) {
+        document.cookie = "token=" + token;
+      });
+    } else {
+      var ui = new firebaseui.auth.AuthUI(firebase.auth());
+      ui.start('#firebaseui-auth-container', uiConfig);
+      document.getElementById('sign-out').hidden = true;
+      document.getElementById('login-info').hidden = true;
+      document.cookie = "token=";
+    }
+  }, function (error) {
+    console.log(error);
+    alert('Unable to log in: ' + error)
+  });
+});
+```
+
+### トークンの検証、復号バックエンド作成
+
+```py:main.py
+firebase_request_adapter = requests.Request()
+@app.route('/')
+def root():
+    id_token = request.cookies.get("token")
+    error_message = None
+    claims = None
+    times = None
+
+    if id_token:
+        try:
+            claims = google.oauth2.id_token.verify_firebase_token(
+                id_token, firebase_request_adapter)
+        except ValueError as exc:
+            error_message = str(exc)
+
+    UTC = datetime.datetime.now(tz=datetime.timezone.utc)
+    JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
+    dt = UTC.astimezone(JST)
+    store_time(dt)
+    times = fetch_times(10)
+
+    return render_template(
+        'index.html',
+        user_data=claims, error_message=error_message, times=times)
+
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=8080, debug=True)
+```
+
+### 確認
+
+- requirements.txt追加
+
+```
+$ pip install -r requirements.txt
+
+$ python main.py
+```
+
+→認証ボタンが出てくる
+
+### デプロイ
+
+```
+$ gcloud app deploy
+
+$ gcloud app browse
+```

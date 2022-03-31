@@ -1,7 +1,9 @@
 import datetime
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+from google.auth.transport import requests
 from google.cloud import datastore
+import google.oauth2.id_token
 
 app = Flask(__name__)
 
@@ -23,21 +25,30 @@ def fetch_times(limit):
 
     return times
 
+firebase_request_adapter = requests.Request()
 @app.route('/')
 def root():
+    id_token = request.cookies.get("token")
+    error_message = None
+    claims = None
+    times = None
+
+    if id_token:
+        try:
+            claims = google.oauth2.id_token.verify_firebase_token(
+                id_token, firebase_request_adapter)
+        except ValueError as exc:
+            error_message = str(exc)
+
     UTC = datetime.datetime.now(tz=datetime.timezone.utc)
     JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
     dt = UTC.astimezone(JST)
     store_time(dt)
-
     times = fetch_times(10)
 
-    """ dummy_times = [datetime.datetime(2018, 1, 1, 10, 0, 0),
-                   datetime.datetime(2018, 1, 2, 10, 30, 0),
-                   datetime.datetime(2018, 1, 3, 11, 0, 0),
-                   ] """
-
-    return render_template('index.html', times=times)
+    return render_template(
+        'index.html',
+        user_data=claims, error_message=error_message, times=times)
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App
