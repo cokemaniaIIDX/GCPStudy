@@ -9,16 +9,17 @@ app = Flask(__name__)
 
 datastore_client = datastore.Client()
 
-def store_time(dt):
-    entity = datastore.Entity(key=datastore_client.key('visit'))
+def store_time(email, dt):
+    entity = datastore.Entity(key=datastore_client.key('User', email, 'visit'))
     entity.update({
         'timestamp': dt
     })
 
     datastore_client.put(entity)
 
-def fetch_times(limit):
-    query = datastore_client.query(kind='visit')
+def fetch_times(email, limit):
+    ancestor = datastore_client.key('User', email)
+    query = datastore_client.query(kind='visit', ancestor=ancestor)
     query.order = ['-timestamp']
 
     times = query.fetch(limit=limit)
@@ -37,14 +38,13 @@ def root():
         try:
             claims = google.oauth2.id_token.verify_firebase_token(
                 id_token, firebase_request_adapter)
+            UTC = datetime.datetime.now(tz=datetime.timezone.utc)
+            JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
+            dt = UTC.astimezone(JST)
+            store_time(claims['email'], dt)
+            times = fetch_times(claims['email'], 10)
         except ValueError as exc:
             error_message = str(exc)
-
-    UTC = datetime.datetime.now(tz=datetime.timezone.utc)
-    JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
-    dt = UTC.astimezone(JST)
-    store_time(dt)
-    times = fetch_times(10)
 
     return render_template(
         'index.html',

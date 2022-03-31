@@ -405,3 +405,109 @@ $ gcloud app deploy
 
 $ gcloud app browse
 ```
+
+## 7. データのパーソナライズ
+
+1. store, fetchメソッド更新
+
+```py:main.py
+datastore_client = datastore.Client()
+
+def store_time(email, dt):
+    entity = datastore.Entity(key=datastore_client.key('User', email, 'visit'))
+    entity.update({
+        'timestamp': dt
+    })
+
+    datastore_client.put(entity)
+
+def fetch_times(email, limit):
+    ancestor = datastore_client.key('User', email)
+    query = datastore_client.query(kind='visit', ancestor=ancestor)
+    query.order = ['-timestamp']
+
+    times = query.fetch(limit=limit)
+
+    return times
+```
+
+データの保存メソッドとデータの整形メソッドにユーザとEmailを追加
+visitエンティティに対して`ancestor`を関連付ける
+※ancestorがユーザ独自で決める変数なのか、Datastore固有のものなのかは不明
+
+2. rootメソッド更新
+
+```py:main.py
+firebase_request_adapter = requests.Request()
+@app.route('/')
+def root():
+    id_token = request.cookies.get("token")
+    error_message = None
+    claims = None
+    times = None
+
+    if id_token:
+        try:
+            claims = google.oauth2.id_token.verify_firebase_token(
+                id_token, firebase_request_adapter)
+            UTC = datetime.datetime.now(tz=datetime.timezone.utc)
+            JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
+            dt = UTC.astimezone(JST)
+            store_time(claims['email'], dt)
+            times = fetch_times(claims['email'], 10)
+        except ValueError as exc:
+            error_message = str(exc)
+
+    return render_template(
+        'index.html',
+        user_data=claims, error_message=error_message, times=times)
+```
+
+tokenを検証して得た`claims変数`の中にある`email`をさっき更新したメソッドの引数に渡してあげる
+
+### インデックスの構成
+
+Datastoreではインデックスというのに基づいてクエリを作成している
+ただ、祖先があるエンティティとかの複雑なエンティティについては自動生成のインデックスが使えないので、
+手動でインデックスを作成して読み込ませる必要がある
+
+```yaml:index.yaml
+indexes:
+
+- kind: visit
+  ancestor: yes
+  properties:
+  - name: timestamp
+    direction: desc
+```
+
+Datastoreにデプロイ
+
+```
+$ gcloud datastore indexes create index.yaml
+```
+
+→コンソールで確認
+
+### 確認
+
+```
+$ python main.py
+
+http://localhost:8080/
+```
+
+思った通り、Emailログインは未登録の場合新規作成になる
+この辺は理解進んだなぁ
+
+### デプロイ
+
+```
+$ gcloud app deploy
+
+$ gcloud app browse
+```
+
+# 完了！
+
+完全に理解したｗ
